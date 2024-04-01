@@ -10,7 +10,11 @@ const sequelize = new Sequelize('sql10695813', 'sql10695813', 'hvNSZXiuxS', {
 const Notas = sequelize.define('Notas', {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   content: { type: DataTypes.STRING(50) },
-  date: { type: DataTypes.DATE },
+  date: {
+    type: DataTypes.DATEONLY,
+    allowNull: false,
+    defaultValue: DataTypes.NOW
+  },
   important: { type: DataTypes.BOOLEAN }
 }, {
   freezeTableName: true,

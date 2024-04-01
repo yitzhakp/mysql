@@ -58,8 +58,9 @@ app.post('/api/notes', (request, response) => {
     important: typeof note.important !== 'undefined' ? note.important : false
   }
   Notas.create(newNote)
-    .then(() => {
-      response.status(201).json(newNote)
+    .then((n) => {
+      console.log(n.dataValues)
+      response.status(201).json(n.dataValues)
     })
 })
 
@@ -81,7 +82,8 @@ app.put('/api/notes/:id', (request, response) => {
       id: ids
     }
   })
-    .then(() => {
+    .then((n) => {
+      console.log(n)
       response.status(201).json(newNote)
     })
 })
