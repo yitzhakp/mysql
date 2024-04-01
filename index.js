@@ -1,3 +1,5 @@
+const sequelize = require('./model').sequelize
+const { Notas } = require('./model')
 const express = require('express')
 const app = express()
 const cors = require('cors')
@@ -5,51 +7,42 @@ const cors = require('cors')
 app.use(cors())
 app.use(express.json())
 
-let notes = [
-  {
-    id: 1,
-    content: 'HTML is easy',
-    date: '2019-05-30T17:30:31.0933',
-    important: true
-  },
-  {
-    id: 2,
-    content: 'Browser can',
-    date: '2018-05-30T17:30:31.0933',
-    categories: ['Google', 'Brave'],
-    important: false
-  },
-  {
-    id: 3,
-    content: 'GET and POST',
-    date: '2017-05-30T17:30:31.0933',
-    important: true
-  }
-]
+sequelize.authenticate()
+  .then(() => {
+    console.log('Conectados')
+  })
+  .catch(error => {
+    console.log('Erorr es: ' + error)
+  })
 
 app.get('/', (request, response) => {
   response.send('<h1>Hello world</h1>')
 })
 
 app.get('/api/notes', (request, response) => {
-  response.json(notes)
-})
-
-app.get('/api/notes/:id', (request, response) => {
-  const id = Number(request.params.id)
-  const note = notes.find(notes => notes.id === id)
-
-  if (note) {
-    response.json(note)
-  } else {
+  try {
+    Notas.findAll()
+      .then((getNotas) => {
+        const notes = getNotas.map(note => note.dataValues)
+        console.log(notes)
+        response.json(notes)
+      })
+  } catch {
     response.status(404).end()
   }
 })
 
 app.delete('/api/notes/:id', (request, response) => {
-  const id = Number(request.params.id)
-  notes = notes.filter(notes => notes.id !== id)
-  response.status(204).end()
+  const ids = Number(request.params.id)
+  Notas.destroy({
+    where: {
+      id: ids
+    }
+  })
+    .then((delNota) => {
+      console.log(delNota)
+      response.status(204).end()
+    })
 })
 
 app.post('/api/notes', (request, response) => {
@@ -61,16 +54,39 @@ app.post('/api/notes', (request, response) => {
   }
 
   const newNote = {
-    id: notes.length + 1,
     content: note.content,
-    date: new Date().toISOString(),
     important: typeof note.important !== 'undefined' ? note.important : false
   }
-  notes = [...notes, newNote]
-  response.status(201).json(newNote)
+  Notas.create(newNote)
+    .then(() => {
+      response.status(201).json(newNote)
+    })
 })
 
-const PORT = process.env.PORT
+app.put('/api/notes/:id', (request, response) => {
+  const note = request.body
+  const ids = Number(request.params.id)
+  if (!note || !note.content) {
+    return response.status(400).json({
+      error: 'note.content is void'
+    })
+  }
+
+  const newNote = {
+    content: note.content,
+    important: typeof note.important !== 'undefined' ? note.important : false
+  }
+  Notas.update(newNote, {
+    where: {
+      id: ids
+    }
+  })
+    .then(() => {
+      response.status(201).json(newNote)
+    })
+})
+
+const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
