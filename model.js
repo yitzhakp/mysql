@@ -1,3 +1,16 @@
+const mysql = require('mysql')
+
+const con = mysql.createConnection({
+  host: 'sql10.freesqldatabase.com',
+  port: 3306,
+  user: 'sql10697579',
+  password: 'KxSNJf9yjl',
+  database: 'sql10697579'
+})
+
+module.exports = { con }
+/*
+
 const { DataTypes } = require('sequelize')
 const Sequelize = require('sequelize')
 
@@ -30,3 +43,4 @@ sequelize.authenticate()
   })
 
 module.exports = { sequelize, Notas }
+*/

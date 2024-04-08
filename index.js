@@ -1,5 +1,4 @@
-const sequelize = require('./model').sequelize
-const { Notas } = require('./model')
+const { con } = require('./model')
 const express = require('express')
 const app = express()
 const cors = require('cors')
@@ -7,13 +6,10 @@ const cors = require('cors')
 app.use(cors())
 app.use(express.json())
 
-sequelize.authenticate()
-  .then(() => {
-    console.log('Conectados')
-  })
-  .catch(error => {
-    console.log('Erorr es: ' + error)
-  })
+con.connect(function (err) {
+  if (err) console.error(err)
+  console.log('Connected!')
+})
 
 app.get('/', (request, response) => {
   response.send('<h1>Hello world</h1>')
@@ -21,12 +17,11 @@ app.get('/', (request, response) => {
 
 app.get('/api/notes', (request, response) => {
   try {
-    Notas.findAll()
-      .then((getNotas) => {
-        const notes = getNotas.map(note => note.dataValues)
-        console.log(notes)
-        response.json(notes)
-      })
+    con.query('SELECT * FROM customers', function (err, result, fields) {
+      if (err) console.error(err)
+      console.log(result)
+      response.json(result)
+    })
   } catch {
     response.status(404).end()
   }
@@ -34,58 +29,47 @@ app.get('/api/notes', (request, response) => {
 
 app.delete('/api/notes/:id', (request, response) => {
   const ids = Number(request.params.id)
-  Notas.destroy({
-    where: {
-      id: ids
-    }
+  const sql = `DELETE FROM customers WHERE id = ${ids}`
+  console.log(sql)
+  con.query(sql, function (err, result) {
+    if (err) throw err
+    console.log('Number of records deleted: ' + result.affectedRows)
+    response.status(204).end()
   })
-    .then((delNota) => {
-      console.log(delNota)
-      response.status(204).end()
-    })
 })
 
 app.post('/api/notes', (request, response) => {
   const note = request.body
-  if (!note || !note.content) {
+  if (!note || !note.name || !note.address) {
     return response.status(400).json({
       error: 'note.content is void'
     })
   }
 
-  const newNote = {
-    content: note.content,
-    important: typeof note.important !== 'undefined' ? note.important : false
-  }
-  Notas.create(newNote)
-    .then((n) => {
-      console.log(n.dataValues)
-      response.status(201).json(n.dataValues)
-    })
+  const sql = `INSERT INTO customers (name, address) VALUES ("${note.name}", "${note.address}")`
+  con.query(sql, function (err, result) {
+    if (err) console.error(err)
+    console.log('1 record inserted')
+    response.status(201).json()
+  })
 })
 
 app.put('/api/notes/:id', (request, response) => {
   const note = request.body
   const ids = Number(request.params.id)
-  if (!note || !note.content) {
+  if (!note || !note.address) {
     return response.status(400).json({
       error: 'note.content is void'
     })
   }
 
-  const newNote = {
-    content: note.content,
-    important: typeof note.important !== 'undefined' ? note.important : false
-  }
-  Notas.update(newNote, {
-    where: {
-      id: ids
-    }
+  const sql = `UPDATE customers SET address = '${note.address}' WHERE id = ${ids}`
+
+  con.query(sql, function (err, result) {
+    if (err) console.error(err)
+    console.log(result.affectedRows + ' record(s) updated')
+    response.status(201)
   })
-    .then((n) => {
-      console.log(n)
-      response.status(201).json(newNote)
-    })
 })
 
 const PORT = process.env.PORT || 3001

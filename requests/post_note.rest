@@ -2,16 +2,16 @@ POST http://localhost:3001/api/notes
 Content-Type: application/json
 
 {
-    "content": "Hola mundo",
-    "important": true
+    "name": "Hola ss",
+    "address": "mi casa"
 }
 
 ###
-POST http://localhost:3001/api/notes
+PUT http://localhost:3001/api/notes/3
 Content-Type: application/json
 
 {
-    "content": "Hola mundo"
+    "address": "Hola mundo"
 }
 
 ###
